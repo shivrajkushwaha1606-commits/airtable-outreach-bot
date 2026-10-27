@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  outreach-dashboard:
+    build: .
+    container_name: airtable_outreach_dashboard
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - AIRTABLE_TOKEN=${AIRTABLE_TOKEN}
+      - AIRTABLE_BASE_ID=appnD39Am5fUmSH8l
+      - AIRTABLE_TABLE_ID=tblBk24WqNfOcicvB
+      - AIRTABLE_VIEW_ID=viwnh8Kj82LhyzykF
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

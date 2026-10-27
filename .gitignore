@@ -1,0 +1,24 @@
+# Logs and caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Scratch and test files
+scratch/
+test_*.py
+debug_*.py
+patch_*.py
+check_*.py
+update_*.py
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.local

@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Airtable Outreach Bot • Full Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard-wrapper">
+    <!-- Top Global Header -->
+    <header class="dash-header">
+      <div class="dash-brand">
+        <span class="dash-logo">🚀</span>
+        <div>
+          <h1>Agency Engine • Outreach & Social Enrichment Dashboard</h1>
+          <p class="dash-sub">Permanent Browser Tab • Syncs directly with Airtable base appnD39Am5fUmSH8l</p>
+        </div>
+      </div>
+      <div class="dash-header-actions">
+        <a href="/download-extension" class="btn btn-outline-secondary" id="downloadMacExtBtn" download title="Download unpacked Chrome/Brave Extension for Mac" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">🍏 Mac Extension (.zip)</a>
+        <button id="dashFindDuplicatesBtn" class="btn btn-warning" title="Scan Airtable for duplicate records by YouTube URL, Name, or Socials">👯 Find Duplicates</button>
+        <button id="dashOpenAnalyticsBtn" class="btn btn-outline-secondary" style="color: #818cf8; border-color: rgba(99, 102, 241, 0.4); display: inline-flex; align-items: center; gap: 5px;"><span style="font-size: 13px;">📊</span> Platform Analytics</button>
+        <button id="openAirtableBaseBtn" class="btn btn-outline-secondary">↗ Open Airtable Base</button>
+        <button id="fetchBtn" class="btn btn-primary">🔄 Sync Airtable</button>
+        <button id="autoQueueBtn" class="btn btn-success">▶ Start Auto-Queue</button>
+        <div class="status-badge" id="statusBadge">Ready</div>
+      </div>
+    </header>
+
+    <!-- Global Stats Bar -->
+    <div class="dash-stats-bar">
+      <div class="dash-stat-item">
+        <span class="stat-val" id="totalCount">0</span>
+        <span class="stat-lbl">Total Creators</span>
+      </div>
+      <div class="dash-stat-item">
+        <span class="stat-val" id="pendingCount">0</span>
+        <span class="stat-lbl">Pending Outreach</span>
+      </div>
+      <div class="dash-stat-item">
+        <span class="stat-val" id="messagedCount">0</span>
+        <span class="stat-lbl">Messaged</span>
+      </div>
+      <div class="dash-stat-item stat-warning">
+        <span class="stat-val" id="statMissingAny">0</span>
+        <span class="stat-lbl">Need Socials</span>
+      </div>
+      <div class="dash-stat-item">
+        <span class="stat-val" id="statMissingIG">0</span>
+        <span class="stat-lbl">Missing IG</span>
+      </div>
+      <div class="dash-stat-item">
+        <span class="stat-val" id="statMissingX">0</span>
+        <span class="stat-lbl">Missing 𝕏</span>
+      </div>
+      <div class="dash-stat-item">
+        <span class="stat-val" id="statMissingDC">0</span>
+        <span class="stat-lbl">Missing Discord</span>
+      </div>
+      <div class="dash-stat-item">
+        <span class="stat-val" id="statMissingEmail">0</span>
+        <span class="stat-lbl">Missing Email</span>
+      </div>
+    </div>
+
+    <!-- Main 3-Column Layout -->
+    <main class="dash-grid">
+      
+      <!-- COLUMN 1: Queue & Today's DMs -->
+      <section class="dash-col col-queue">
+        <div class="col-header" style="flex-direction: column; gap: 8px; align-items: stretch;">
+          <div class="col-segmented-control">
+            <button class="seg-btn active" id="dashTabToday">🎯 Today's DMs (<span id="dashTodayCount">0</span>)</button>
+            <button class="seg-btn" id="dashTabAll">📋 All Creators (<span id="queueCount">0</span>)</button>
+            <button class="seg-btn" id="dashTabOld">⏳ Old Channels (<span id="dashOldCount">0</span>)</button>
+            <button class="seg-btn" id="dashTabFinder">🔎 Channel Leads</button>
+          </div>
+        </div>
+
+        <!-- Today's Runner Box in Dashboard Column 1 -->
+        <div id="dashTodayHeaderCard" class="today-header-card">
+          <div class="today-header-top">
+            <div>
+              <h3>🎯 Today's DM Queue</h3>
+              <p class="today-sub">Reach out to your daily target with guided auto-pacing</p>
+            </div>
+            <div class="today-target-select" style="display: flex; gap: 8px; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <label for="dashTodayPitchSelect">Pitch:</label>
+                <select id="dashTodayPitchSelect" class="pitch-select" style="max-width: 130px;"></select>
+              </div>
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <label for="dashTodayGoalSelect">Goal:</label>
+                <select id="dashTodayGoalSelect">
+                  <option value="10">10 Creators</option>
+                  <option value="15" selected>15 Creators</option>
+                  <option value="25">25 Creators</option>
+                  <option value="50">50 Creators</option>
+                  <option value="all">All Reachable</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Platform Selector Bar -->
+          <div class="today-platform-bar">
+            <div class="platform-bar-header">
+              <span class="today-filter-label">Target Platform for Today:</span>
+              <span class="platform-active-pill" id="dashActivePlatBadge">🌐 All Channels</span>
+            </div>
+            <div class="platform-toggle-group">
+              <button class="plat-toggle-btn active" data-platform="all" title="Show all reachable creators">
+                🌐 All Channels (<span id="dashCountPlatAll">0</span>)
+              </button>
+              <button class="plat-toggle-btn" data-platform="twitter" title="Filter to creators with Twitter/X">
+                𝕏 Twitter / X (<span id="dashCountPlatTwitter">0</span>)
+              </button>
+              <button class="plat-toggle-btn" data-platform="instagram" title="Filter to creators with Instagram">
+                📷 Instagram (<span id="dashCountPlatInstagram">0</span>)
+              </button>
+              <button class="plat-toggle-btn" data-platform="email" title="Filter to creators with Email">
+                ✉ Email (<span id="dashCountPlatEmail">0</span>)
+              </button>
+              <button class="plat-toggle-btn" data-platform="discord" title="Filter to creators with Discord">
+                💬 Discord (<span id="dashCountPlatDiscord">0</span>)
+              </button>
+            </div>
+          </div>
+
+          <div class="today-runner-box">
+            <div class="today-progress-row">
+              <span class="progress-lbl" id="dashTodayProgressText">0 of 15 DMed Today</span>
+              <span class="progress-pct" id="dashTodayProgressPct">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="dashTodayProgressBarFill" style="width: 0%;"></div>
+            </div>
+            <div class="today-controls-row">
+              <div class="delay-group">
+                <label for="dashTodayDelaySec">Delay (sec):</label>
+                <input type="number" id="dashTodayDelaySec" value="10" min="4" max="60" style="width: 48px;">
+              </div>
+              <div class="btn-group-runner">
+                <button id="dashStartTodayRunnerBtn" class="btn btn-sm btn-success">🚀 Start Auto-DM</button>
+                <button id="dashPauseTodayRunnerBtn" class="btn btn-sm btn-warning" style="display: none;">⏸ Pause</button>
+                <button id="dashSkipTodayRunnerBtn" class="btn btn-sm btn-outline-secondary" style="display: none;">⏭ Skip</button>
+                <button id="dashStopTodayRunnerBtn" class="btn btn-sm btn-danger" style="display: none;">⏹ Stop</button>
+              </div>
+            </div>
+            <div id="dashTodayCountdownBanner" class="today-countdown-banner" style="display: none;">
+              ⏳ Ready to launch...
+            </div>
+          </div>
+        </div>
+
+        <!-- Creator List for Today's DMs -->
+        <div class="today-creators-list" id="dashTodayCreatorsList">
+          <!-- Populated via JS -->
+        </div>
+
+        <!-- All Creators Filter & List (shown when "All Creators" tab is selected) -->
+        <div id="dashAllQueueContainer" style="display: none; flex-direction: column; gap: 8px;">
+          <div class="filter-group">
+            <input type="text" id="searchInput" placeholder="Search creators by name or niche...">
+            <select id="filterPlatform">
+              <option value="all">All Channels</option>
+              <option value="missing_any">⚠️ Missing Any Socials</option>
+              <option value="missing_all">❌ Missing All Socials</option>
+              <option value="missing_ig">Missing Instagram</option>
+              <option value="missing_x">Missing Twitter/X</option>
+              <option value="missing_discord">Missing Discord</option>
+              <option value="missing_email">Missing Email</option>
+              <option value="missing_yt">Missing YouTube</option>
+              <option value="has_email">Has Email</option>
+              <option value="has_x">Has Twitter/X</option>
+              <option value="has_discord">Has Discord</option>
+              <option value="has_instagram">Has Instagram</option>
+            </select>
+          </div>
+
+          <div class="creator-list" id="creatorList">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Old Channels Container (shown when "Old Channels" tab is selected) -->
+        <div id="dashOldChannelsContainer" style="display: none; flex-direction: column; gap: 10px;">
+          <div class="old-channels-header-card">
+            <div class="old-header-top">
+              <div>
+                <h3>⏳ Inactive Channel Auditor</h3>
+                <p class="section-sub">Detect channels that haven't uploaded in 60+ days or left YouTube</p>
+              </div>
+              <button id="dashScanOldChannelsBtn" class="btn btn-sm btn-primary">🔍 Scan Upload Activity</button>
+            </div>
+            <div class="old-filter-bar">
+              <label for="dashOldChannelsFilter">Threshold:</label>
+              <select id="dashOldChannelsFilter">
+                <option value="inactive_60" selected>⚠️ Inactive (60+ days)</option>
+                <option value="inactive_90">⏳ Inactive (3+ months)</option>
+                <option value="inactive_180">❌ Inactive (6+ months)</option>
+                <option value="inactive_365">💀 Inactive (1+ year)</option>
+                <option value="no_videos">🚫 No Recent Videos</option>
+                <option value="all">🌐 All Channels</option>
+              </select>
+              <span id="dashOldChannelsCountSummary" class="count-pill">0 inactive</span>
+            </div>
+            <!-- Scan Progress -->
+            <div id="dashOldScanProgressContainer" class="progress-container" style="display: none;">
+              <div class="progress-labels">
+                <span id="dashOldScanText">Auditing channels... (0/0)</span>
+                <span id="dashOldScanPercent">0%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div id="dashOldScanBarFill" class="progress-bar-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="old-channels-list" id="dashOldChannelsList">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Lead Finder Container (shown when "Channel Leads" tab is selected) -->
+        <div id="dashLeadFinderCard" style="display: none; flex-direction: column; gap: 10px;">
+          <div class="finder-header-card">
+            <div class="finder-title-row">
+              <div>
+                <h3>🔎 YouTube Channel Lead Finder</h3>
+                <p class="finder-sub">Filter active creators by subscriber count, upload frequency & recency</p>
+              </div>
+              <button id="dashFinderResetBtn" class="btn btn-xs btn-outline-secondary">Reset</button>
+            </div>
+
+            <div class="finder-form">
+              <div class="finder-input-row">
+                <div class="form-group flex-2">
+                  <label for="dashFinderQuery">Niche / Topic / Keyword</label>
+                  <input type="text" id="dashFinderQuery" placeholder="e.g. Roblox, Minecraft, Gaming, Tech..." value="Roblox">
+                </div>
+                <div class="form-group flex-1">
+                  <label for="dashFinderLimit">Channels to Find (Count)</label>
+                  <input type="number" id="dashFinderLimit" min="1" max="100" value="15" placeholder="e.g. 15">
+                </div>
+              </div>
+
+              <div class="finder-input-row">
+                <div class="form-group flex-1">
+                  <label for="dashFinderContentType">Content Type</label>
+                  <select id="dashFinderContentType">
+                    <option value="long_form" selected>🎬 Long-Form Focus (No Shorts-Only)</option>
+                    <option value="any">🌐 Any Content (Long & Shorts)</option>
+                    <option value="shorts_only">⚡ Shorts Only</option>
+                  </select>
+                </div>
+                <div class="form-group flex-1">
+                  <label for="dashFinderMaxSubs">Max Subscribers</label>
+                  <select id="dashFinderMaxSubs">
+                    <option value="2000000" selected>Under 2M Subs</option>
+                    <option value="1000000">Under 1M Subs</option>
+                    <option value="500000">Under 500K Subs</option>
+                    <option value="250000">Under 250K Subs</option>
+                    <option value="100000">Under 100K Subs</option>
+                    <option value="50000">Under 50K Subs</option>
+                    <option value="0">Any / No Limit</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="finder-input-row">
+                <div class="form-group flex-1">
+                  <label for="dashFinderLastUpload">Last Upload Date</label>
+                  <select id="dashFinderLastUpload">
+                    <option value="7">Last 7 days (🔥 Active)</option>
+                    <option value="14" selected>Last 14 days</option>
+                    <option value="30">Last 30 days</option>
+                    <option value="60">Last 60 days</option>
+                    <option value="0">Any time</option>
+                  </select>
+                </div>
+                <div class="form-group flex-1">
+                  <label for="dashFinderMinFreq">Upload Frequency</label>
+                  <select id="dashFinderMinFreq">
+                    <option value="0" selected>Any frequency</option>
+                    <option value="0.5">2+ vids/month</option>
+                    <option value="1.0">~1+ vid/week</option>
+                    <option value="2.0">~2+ vids/week</option>
+                    <option value="3.0">~3+ vids/week (Active)</option>
+                    <option value="4.0">~4+ vids/week (High)</option>
+                    <option value="5.0">~5+ vids/week (Very Active)</option>
+                    <option value="7.0">~Daily (7+ vids/week)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="finder-input-row">
+                <div class="form-group flex-1">
+                  <label for="dashFinderMinViews">Avg Views / Video</label>
+                  <select id="dashFinderMinViews">
+                    <option value="0" selected>Any Views</option>
+                    <option value="1000">1K+ Avg Views</option>
+                    <option value="5000">5K+ Avg Views</option>
+                    <option value="10000">10K+ Avg Views</option>
+                    <option value="25000">25K+ Avg Views</option>
+                    <option value="50000">50K+ Avg Views</option>
+                    <option value="100000">100K+ Avg Views</option>
+                  </select>
+                </div>
+                <div class="form-group flex-1">
+                  <label for="dashFinderLanguage">Language / Region</label>
+                  <select id="dashFinderLanguage">
+                    <option value="en" selected>🇺🇸 English Only (Strict Filter)</option>
+                    <option value="all">🌐 Any Language</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="finder-checkbox-row" style="margin: 2px 0 10px 0; display: flex; align-items: center; gap: 8px;">
+                <label class="custom-checkbox-label" style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; color: #cbd5e1; user-select: none;">
+                  <input type="checkbox" id="dashFinderExcludeExisting" checked style="accent-color: #6366f1; width: 16px; height: 16px; cursor: pointer;">
+                  <span>🚫 <strong>Exclude existing Airtable creators</strong> (Hide channels already in database)</span>
+                </label>
+              </div>
+
+              <div class="finder-quick-tags">
+                <span class="quick-tag-label">Presets:</span>
+                <button type="button" class="quick-chip" data-query="Roblox">Roblox</button>
+                <button type="button" class="quick-chip" data-query="Minecraft">Minecraft</button>
+                <button type="button" class="quick-chip" data-query="Fortnite">Fortnite</button>
+                <button type="button" class="quick-chip" data-query="Tech Reviews">Tech</button>
+                <button type="button" class="quick-chip" data-query="Valheim">Valheim</button>
+              </div>
+
+              <div class="finder-action-row">
+                <button id="dashStartFinderBtn" class="btn btn-primary btn-block">
+                  <span id="dashFinderBtnIcon">🔍</span> <span id="dashFinderBtnText">Search & Filter Channels</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="dashFinderResultsBar" class="finder-results-bar" style="display: none;">
+            <div class="results-meta">
+              <label class="bulk-select-label">
+                <input type="checkbox" id="dashFinderSelectAll"> Select All (<span id="dashFinderSelectedCount">0</span>)
+              </label>
+              <span id="dashFinderResultStatus" class="results-status-text">Found 0 matching channels</span>
+            </div>
+            <button id="dashBatchAddLeadsBtn" class="btn btn-sm btn-success" disabled>
+              ➕ Batch Add Selected to Airtable
+            </button>
+          </div>
+
+          <div id="dashFinderResultsList" class="finder-results-list">
+            <div class="empty-state">
+              <div class="empty-icon">🔎</div>
+              <h4>Search for YouTube Creators</h4>
+              <p>Set your subscriber filters, upload frequency, and keyword above, then click <b>Search & Filter Channels</b>.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUMN 2: Active Outreach Target & Pitch Generator -->
+      <section class="dash-col col-target">
+        <div class="col-header">
+          <h2>🎯 Active Target & Outreach</h2>
+        </div>
+
+        <div class="current-card" id="currentCard" style="display: none;">
+          <div class="card-header">
+            <span class="active-tag">SELECTED CREATOR</span>
+            <button id="openAirtableBtn" class="btn btn-sm btn-outline-secondary" title="Open this creator in Airtable">↗ Airtable Record</button>
+          </div>
+          
+          <h2 id="currentName" class="target-title">Creator Name</h2>
+          <p class="current-meta" id="currentMeta">Niche • Stats</p>
+
+          <!-- Social Links Available -->
+          <div class="action-section-title">Connected Social Channels:</div>
+          <div class="social-actions" id="currentSocialActions">
+            <!-- Populated via JS -->
+          </div>
+
+          <!-- Newly Discovered Box -->
+          <div class="discovered-socials-box" id="currentDiscoveredBox" style="display: none;">
+            <span class="discovered-header">🎉 Discovered & Synced to Airtable:</span>
+            <div class="discovered-pills" id="currentDiscoveredPills"></div>
+            <div class="discovered-reasons" id="currentDiscoveredReasons"></div>
+          </div>
+
+          <!-- Missing Socials Banner & Search -->
+          <div class="missing-banner" id="missingBanner" style="display: none;">
+            <div class="missing-header">
+              <span class="missing-title">⚠️ Missing Socials:</span>
+              <span class="missing-tags" id="missingTags"></span>
+            </div>
+            <div class="search-actions-row">
+              <button id="searchSocialsBtn" class="btn btn-accent-glow" style="flex: 2;">
+                🔍 Deep Search (Channel, Videos & Web)
+              </button>
+            </div>
+            <div id="searchResultFeedback" class="search-feedback" style="display: none;"></div>
+          </div>
+
+          <!-- Personalized Pitch Generator Preview -->
+          <div class="pitch-container">
+            <div class="pitch-header">
+              <span>Personalized Pitch Template:</span>
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <select id="dashPitchSelect" class="pitch-select" style="max-width: 170px;"></select>
+                <button id="copyPitchBtn" class="btn btn-sm btn-outline-secondary">📋 Copy Pitch</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Subject</label>
+              <input type="text" id="emailSubject" value="Collaboration Inquiry: {name} x Agency Engine">
+            </div>
+            <div class="form-group">
+              <label>Body</label>
+              <textarea id="messageTemplate" rows="6">Hey {name}!
+
+Loved your recent Roblox uploads. We're currently managing high-performing campaigns with top gaming creators in your niche and wanted to explore an exclusive sponsorship collaboration with your channel.
+
+Are you open to discussing opportunities for upcoming videos? Let me know where's best to connect!
+
+Best regards,</textarea>
+            </div>
+          </div>
+
+          <div class="card-footer-btns">
+            <button id="markDoneBtn" class="btn btn-success" style="flex: 2;">✓ Mark Messaged in Airtable</button>
+            <button id="skipBtn" class="btn btn-outline-secondary" style="flex: 1;">⏭ Skip Next</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUMN 3: Social Finder & Pitch Snippets Library -->
+      <section class="dash-col col-finder">
+        <div class="col-header" style="flex-direction: column; gap: 8px; align-items: stretch;">
+          <div class="col-segmented-control">
+            <button class="seg-btn active" id="dashCol3TabFinder">🔍 Social Finder</button>
+            <button class="seg-btn" id="dashCol3TabPitches">📝 Pitch Snippets</button>
+            <button class="seg-btn" id="dashCol3TabAnalytics">📊 Platform Analytics</button>
+          </div>
+        </div>
+
+        <!-- Container 1: Social Finder -->
+        <div id="dashFinderContainer" style="display: flex; flex-direction: column; gap: 10px;">
+          <p class="finder-desc">Deep searches YouTube channel headers, video descriptions, verified community databases, and checks Discord invites to ensure they are <b>active and not expired</b>.</p>
+
+          <div class="finder-actions">
+            <button id="batchFindBtn" class="btn btn-primary" style="flex: 2;">
+              ⚡ Deep Search All Missing Creators
+            </button>
+            <button id="stopBatchBtn" class="btn btn-outline-danger" style="display: none; flex: 1;">
+              ⏹ Stop
+            </button>
+          </div>
+
+          <!-- Batch Progress Container -->
+          <div id="batchProgressContainer" class="progress-container" style="display: none;">
+            <div class="progress-labels">
+              <span id="progressText">Deep searching creators... (0/0)</span>
+              <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div id="progressBarFill" class="progress-bar-fill" style="width: 0%;"></div>
+            </div>
+            <div id="batchLog" class="batch-log"></div>
+          </div>
+
+          <div class="finder-list-header">
+            <span>Creators Requiring Enrichment:</span>
+          </div>
+          <div class="finder-list" id="finderList">
+            <div class="empty-state">
+              <p>No missing socials detected.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Container 2: Pitch Snippets Library -->
+        <div id="dashPitchesContainer" style="display: none; flex-direction: column; gap: 10px;">
+          <div class="pitches-header-card">
+            <div class="pitches-header-top">
+              <div>
+                <h3>📝 Pitch Templates & Snippets</h3>
+                <p class="section-sub">Text-Blaze style snippets with dynamic variables</p>
+              </div>
+              <button id="dashAddNewPitchBtn" class="btn btn-sm btn-success">➕ New Pitch</button>
+            </div>
+            <div class="variables-hint-bar">
+              <span class="hint-lbl">Variables:</span>
+              <span class="tag-chip" data-var="{name}" title="Click to copy">{name}</span>
+              <span class="tag-chip" data-var="{first_name}" title="Click to copy">{first_name}</span>
+              <span class="tag-chip" data-var="{niche}" title="Click to copy">{niche}</span>
+              <span class="tag-chip" data-var="{handle}" title="Click to copy">{handle}</span>
+            </div>
+          </div>
+
+          <!-- Pitch Add/Edit Form (Collapsible) -->
+          <div id="dashPitchFormContainer" class="pitch-form-card" style="display: none;">
+            <h4 id="dashPitchFormTitle">Create New Pitch</h4>
+            <input type="hidden" id="dashEditPitchId" value="">
+            <div class="form-group-row" style="display: flex; gap: 8px;">
+              <div class="form-group" style="flex: 2;">
+                <label for="dashPitchTitleInput">Template Name</label>
+                <input type="text" id="dashPitchTitleInput" placeholder="e.g. Quick Deal DM">
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label for="dashPitchShortcutInput">Shortcut Tag</label>
+                <input type="text" id="dashPitchShortcutInput" placeholder="/deal">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="dashPitchBodyInput">DM Message Text</label>
+              <textarea id="dashPitchBodyInput" rows="5" placeholder="Hey {name}! Loved your recent {niche} uploads..."></textarea>
+            </div>
+            <div class="pitch-form-actions" style="display: flex; justify-content: flex-end; gap: 6px; margin-top: 6px;">
+              <button id="dashCancelPitchFormBtn" class="btn btn-sm btn-outline-secondary">Cancel</button>
+              <button id="dashSavePitchFormBtn" class="btn btn-sm btn-primary">💾 Save Template</button>
+            </div>
+          </div>
+
+      <!-- A/B Testing & Script Performance Section -->
+      <div class="ab-testing-section" id="dashAbTestingSection" style="margin-top: 14px; background: #131b2e; border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 16px;">🧪</span>
+            <div>
+              <h4 style="margin: 0; font-size: 13px; color: #f8fafc; font-weight: 700;">Script A/B Testing & Reply Analytics</h4>
+              <p style="margin: 2px 0 0 0; font-size: 11px; color: #94a3b8;">Compare reply rates and closed deals across scripts to identify your winner</p>
+            </div>
+          </div>
+          <button id="dashResetAbStatsBtn" class="btn btn-xs btn-outline-secondary" style="font-size: 10px; padding: 2px 6px;">🔄 Reset Stats</button>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 6px; padding: 6px 10px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+            <input type="checkbox" id="dashAbAutoRotateToggle" style="accent-color: #6366f1; width: 15px; height: 15px; cursor: pointer;">
+            <div>
+              <span style="font-weight: 700; color: #c7d2fe; font-size: 11.5px;">🎲 Auto A/B Test Mode (50/50 Split)</span>
+              <span style="display: block; font-size: 10px; color: #94a3b8;">Automatically alternates between your scripts across creators in Today's DM Queue</span>
+            </div>
+          </label>
+        </div>
+
+        <div class="ab-comparison-grid" id="dashAbComparisonGrid" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+          <!-- List of Saved Pitch Cards -->
+          <div class="pitches-list" id="dashPitchesList">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Container 3: Platform Performance & Conversion Analytics -->
+        <div id="dashAnalyticsContainer" style="display: none; flex-direction: column; gap: 12px;">
+          <div class="analytics-header-card">
+            <div class="analytics-title-row">
+              <div>
+                <h3>📊 Platform Performance & Conversion ROI</h3>
+                <p class="analytics-sub">Analyze which platforms generate the most replies, conversions & revenue</p>
+              </div>
+              <div class="analytics-filter-group">
+                <label for="dashAnalyticsNicheFilter">Niche:</label>
+                <select id="dashAnalyticsNicheFilter" class="analytics-select">
+                  <option value="all" selected>All Niches</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Top Winner Insights / Podium -->
+            <div class="analytics-hero-grid">
+              <div class="analytics-hero-card hero-replies">
+                <div class="hero-icon">🏆</div>
+                <div class="hero-content">
+                  <span class="hero-lbl">Top Volume & Replies</span>
+                  <div class="hero-val" id="dashHeroBestReplies">Twitter / X</div>
+                  <span class="hero-sub" id="dashHeroBestRepliesSub">20.3% reply rate (47 replies)</span>
+                </div>
+              </div>
+              <div class="analytics-hero-card hero-conversions">
+                <div class="hero-icon">🎯</div>
+                <div class="hero-content">
+                  <span class="hero-lbl">Top Conversion Engine</span>
+                  <div class="hero-val" id="dashHeroBestConversions">Twitter / X</div>
+                  <span class="hero-sub" id="dashHeroBestConversionsSub">15 Landed Deals (31.9% of replies)</span>
+                </div>
+              </div>
+              <div class="analytics-hero-card hero-revenue">
+                <div class="hero-icon">💰</div>
+                <div class="hero-content">
+                  <span class="hero-lbl">Tracked Rokda / Revenue</span>
+                  <div class="hero-val" id="dashHeroTotalRevenue">$655.00</div>
+                  <span class="hero-sub" id="dashHeroTotalRevenueSub">28 Converted Clients</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Strategic Executive Recommendation -->
+            <div class="analytics-ai-recommendation" id="dashAnalyticsRecommendation">
+              <div class="ai-badge-row">
+                <span class="ai-badge">💡 Strategic Takeaway</span>
+                <span class="ai-date-badge" id="dashAnalyticsStatSummary">408 Creators Analyzed</span>
+              </div>
+              <p id="dashAnalyticsRecommendationText">
+                <b>Twitter / X</b> is your primary revenue engine (47 replies, 15 converted clients). <b>Instagram</b> is highly responsive with a 90% reply-to-deal conversion efficiency. Email outreach currently has a 0% response rate—focus your daily 15-target DM volume on Twitter and Instagram first.
+              </p>
+            </div>
+          </div>
+
+          <!-- Overall Pipeline Conversion Funnel -->
+          <div class="analytics-funnel-card">
+            <div class="funnel-header-row">
+              <h4>📈 Full Outreach Funnel</h4>
+              <span class="funnel-sub-pill" id="dashFunnelSubPill">Base Conversion: 6.9%</span>
+            </div>
+            <div class="funnel-steps-container" id="dashFunnelSteps">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+          <!-- Platform Breakdown Cards (Twitter, Instagram, Discord, Email, Other) -->
+          <div class="analytics-platforms-list" id="dashPlatformsList">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Settings Drawer / Footer Box -->
+        <div class="dash-settings-box">
+          <h3>⚙️ Sync Settings</h3>
+          <div class="settings-grid">
+            <div class="form-group">
+              <label for="airtableToken">Airtable PAT</label>
+              <input type="password" id="airtableToken">
+            </div>
+            <div class="form-group">
+              <label for="airtableBaseId">Base ID</label>
+              <input type="text" id="airtableBaseId" value="appnD39Am5fUmSH8l">
+            </div>
+            <div class="form-group">
+              <label for="airtableTableId">Table ID</label>
+              <input type="text" id="airtableTableId" value="tblBk24WqNfOcicvB">
+            </div>
+            <div class="form-group">
+              <label for="airtableViewId">View ID</label>
+              <input type="text" id="airtableViewId" value="viwnh8Kj82LhyzykF">
+            </div>
+            <div class="form-group">
+              <label for="delaySeconds">Queue Delay (sec)</label>
+              <input type="number" id="delaySeconds" value="8" min="3" max="60">
+            </div>
+          </div>
+          <button id="saveSettingsBtn" class="btn btn-sm btn-primary" style="margin-top: 6px;">💾 Save Configuration</button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer Toast -->
+        <!-- Duplicate Record Resolver Modal -->
+    <div id="duplicateModal" class="modal-backdrop" style="display: none;">
+      <div class="modal-content duplicate-modal-content">
+        <div class="modal-header">
+          <div>
+            <h3>👯 Airtable Duplicate Resolver</h3>
+            <p class="modal-sub">Scan and clean duplicate records by YouTube URL, Name, or Socials</p>
+          </div>
+          <button id="closeDuplicateModalBtn" class="btn-close-modal">✕</button>
+        </div>
+        <div class="duplicate-modal-body">
+          <div id="duplicateModalStats" class="duplicate-stats-bar">
+            <!-- Rendered via JS -->
+          </div>
+          <div id="duplicateModalList" class="duplicate-clusters-list">
+            <!-- Clusters rendered via JS -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="autoCleanDuplicatesBtn" class="btn btn-warning" style="display: none;">⚡ Auto-Clean: Keep Best & Delete Duplicates</button>
+          <button id="doneDuplicateModalBtn" class="btn btn-secondary">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

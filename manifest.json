@@ -1,0 +1,79 @@
+{
+  "manifest_version": 3,
+  "name": "Airtable Creator Outreach Bot",
+  "version": "1.9.5",
+  "description": "Daily DM Queue, Text-Blaze style dynamic pitch templates, Old Channel Inactive Auditor with direct Airtable deletion, and verified creator social enrichment.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab",
+    "scripting",
+    "clipboardWrite",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://api.airtable.com/*",
+    "https://airtable.com/*",
+    "https://*.airtable.com/*",
+    "https://*.youtube.com/*",
+    "https://youtube.com/*",
+    "https://*.fandom.com/*",
+    "https://*.brave.com/*",
+    "https://search.brave.com/*",
+    "https://*.google.com/*",
+    "https://x.com/*",
+    "https://twitter.com/*",
+    "https://www.instagram.com/*",
+    "https://discord.com/*",
+    "https://mail.google.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*",
+        "https://www.instagram.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://airtable.com/*",
+        "https://*.airtable.com/*"
+      ],
+      "js": [
+        "airtable_content.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://youtube.com/*"
+      ],
+      "js": [
+        "youtube_content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
