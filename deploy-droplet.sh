@@ -31,7 +31,17 @@ APP_DIR="/opt/airtable-outreach-bot"
 mkdir -p "$APP_DIR"
 cd "$APP_DIR"
 
-# 5. Build and launch container
+# 5. Environment file check
+if [ ! -f .env ] && [ -f .env.example ]; then
+    echo "⚙️ Creating default .env from .env.example..."
+    cp .env.example .env
+fi
+
+# 6. Make update script executable and install 10-minute auto-update cron
+chmod +x update.sh || true
+(crontab -l 2>/dev/null | grep -v 'update.sh'; echo "*/10 * * * * /bin/bash /opt/airtable-outreach-bot/update.sh > /dev/null 2>&1") | crontab - || true
+
+# 7. Build and launch container
 echo "🐳 Launching via Docker Compose..."
 docker compose down || true
 docker compose up -d --build
