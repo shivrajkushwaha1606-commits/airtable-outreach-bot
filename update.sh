@@ -9,6 +9,7 @@ echo "📥 Pulling latest updates from GitHub..."
 git pull origin main
 
 echo "🐳 Rebuilding and reloading container..."
+docker compose down --remove-orphans || true
 docker compose up -d --build
 
 echo "✅ Successfully updated to latest version!"

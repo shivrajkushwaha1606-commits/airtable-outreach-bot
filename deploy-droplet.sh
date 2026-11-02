@@ -10,7 +10,7 @@ echo "========================================================"
 
 # 1. Update OS packages
 apt-get update -y
-apt-get install -y curl git ufw
+apt-get install -y curl git ufw psmisc
 
 # 2. Install Docker if missing
 if ! command -v docker &> /dev/null; then
@@ -53,9 +53,15 @@ fi
 chmod +x update.sh || true
 (crontab -l 2>/dev/null | grep -v 'update.sh'; echo "*/10 * * * * /bin/bash /opt/airtable-outreach-bot/update.sh > /dev/null 2>&1") | crontab - || true
 
-# 7. Build and launch container
+# 7. Free port 3000 if occupied by older process/container
+echo "🧹 Freeing port 3000 from old processes..."
+docker ps -q --filter "publish=3000" | xargs -r docker stop || true
+docker ps -q --filter "publish=3000" | xargs -r docker rm || true
+fuser -k 3000/tcp || true
+
+# 8. Build and launch container
 echo "🐳 Launching via Docker Compose..."
-docker compose down || true
+docker compose down --remove-orphans || true
 docker compose up -d --build
 
 SERVER_IP=$(curl -s ifconfig.me || curl -s icanhazip.com || hostname -I | awk '{print $1}')
