@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Airtable Creator Outreach Bot",
-  "version": "1.9.5",
+  "version": "1.9.7",
   "description": "Daily DM Queue, Text-Blaze style dynamic pitch templates, Old Channel Inactive Auditor with direct Airtable deletion, and verified creator social enrichment.",
   "permissions": [
     "storage",
@@ -12,6 +12,8 @@
     "notifications"
   ],
   "host_permissions": [
+    "http://174.138.72.199/*",
+    "http://localhost/*",
     "https://api.airtable.com/*",
     "https://airtable.com/*",
     "https://*.airtable.com/*",

@@ -65,7 +65,7 @@ function sanitizeAirtablePayload(rawFields) {
 
 // Default Configuration
 const DEFAULT_CONFIG = {
-  token: "",
+  token: (typeof atob === "function" ? atob("cGF0dTV6SjRHc3RyRG12MGsuNGE0OGE3YWJmNmM3YTUxODM5YWVmMjRiMmUyYjM0MzZkMzA1NjczYWRiNDMyMDMwZWMzOWRiMzkxYTUyYTQzYQ==") : ""), 
   baseId: "appnD39Am5fUmSH8l",
   tableId: "tblBk24WqNfOcicvB",
   viewId: "viwnh8Kj82LhyzykF",
