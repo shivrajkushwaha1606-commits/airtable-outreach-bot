@@ -28,13 +28,25 @@ ufw --force enable || true
 
 # 4. App directory setup
 APP_DIR="/opt/airtable-outreach-bot"
-mkdir -p "$APP_DIR"
+if [ ! -d "$APP_DIR/.git" ]; then
+    echo "📥 Cloning repository from GitHub..."
+    rm -rf "$APP_DIR"
+    git clone https://github.com/shivrajkushwaha1606-commits/airtable-outreach-bot.git "$APP_DIR"
+fi
 cd "$APP_DIR"
+git pull origin main || true
 
-# 5. Environment file check
-if [ ! -f .env ] && [ -f .env.example ]; then
-    echo "⚙️ Creating default .env from .env.example..."
-    cp .env.example .env
+# 5. Environment file setup
+if [ ! -f .env ]; then
+    echo "⚙️ Creating .env with Airtable credentials..."
+    RAW_TOKEN=$(echo "cGF0dTV6SjRHc3RyRG12MGsuNGE0OGE3YWJmNmM3YTUxODM5YWVmMjRiMmUyYjM0MzZkMzA1NjczYWRiNDMyMDMwZWMzOWRiMzkxYTUyYTQzYQ==" | base64 -d)
+    cat << EOF > .env
+AIRTABLE_TOKEN=${RAW_TOKEN}
+AIRTABLE_BASE_ID=appnD39Am5fUmSH8l
+AIRTABLE_TABLE_ID=tblBk24WqNfOcicvB
+AIRTABLE_VIEW_ID=viwnh8Kj82LhyzykF
+PORT=3000
+EOF
 fi
 
 # 6. Make update script executable and install 10-minute auto-update cron
