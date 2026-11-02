@@ -34,8 +34,8 @@ if [ ! -d "$APP_DIR/.git" ]; then
     git clone https://github.com/shivrajkushwaha1606-commits/airtable-outreach-bot.git "$APP_DIR"
 fi
 cd "$APP_DIR"
-git reset --hard HEAD || true
-git pull origin main || true
+git fetch origin main || true
+git reset --hard origin/main || true
 
 # 5. Environment file setup
 if [ ! -f .env ]; then
@@ -56,8 +56,10 @@ chmod +x update.sh || true
 
 # 7. Free port 3000 if occupied by older process/container
 echo "🧹 Freeing port 3000 from old processes..."
-systemctl stop airtable* 2>/dev/null || true
-systemctl stop outreach* 2>/dev/null || true
+systemctl stop outreach.service 2>/dev/null || true
+systemctl disable outreach.service 2>/dev/null || true
+systemctl stop airtable-outreach.service 2>/dev/null || true
+systemctl disable airtable-outreach.service 2>/dev/null || true
 pm2 stop all 2>/dev/null || true
 docker ps -q --filter "publish=3000" | xargs -r docker stop || true
 docker ps -q --filter "publish=3000" | xargs -r docker rm || true
