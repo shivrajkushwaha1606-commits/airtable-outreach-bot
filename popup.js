@@ -203,7 +203,10 @@ async function loadSettings() {
 
   if (!data.airtableToken) {
     try {
-      const srvResp = await fetch("http://localhost:3000/api/config").catch(() => null);
+      const configUrl = (typeof window !== "undefined" && window.location && window.location.origin && window.location.origin.startsWith("http"))
+        ? `${window.location.origin}/api/config`
+        : "http://174.138.72.199:3000/api/config";
+      const srvResp = await fetch(configUrl).catch(() => null);
       if (srvResp && srvResp.ok) {
         const srvConfig = await srvResp.json().catch(() => ({}));
         if (srvConfig.airtableToken) {
@@ -630,9 +633,31 @@ function cleanInstagramUrl(raw) {
 
 // Fetch from Airtable API
 async function fetchAirtableRecords() {
-  const token = document.getElementById("airtableToken")?.value.trim() || DEFAULT_CONFIG.token;
-  const baseId = document.getElementById("airtableBaseId")?.value.trim() || DEFAULT_CONFIG.baseId;
-  const tableId = document.getElementById("airtableTableId")?.value.trim() || DEFAULT_CONFIG.tableId;
+  let token = document.getElementById("airtableToken")?.value.trim() || DEFAULT_CONFIG.token;
+  let baseId = document.getElementById("airtableBaseId")?.value.trim() || DEFAULT_CONFIG.baseId;
+  let tableId = document.getElementById("airtableTableId")?.value.trim() || DEFAULT_CONFIG.tableId;
+
+  if (!token) {
+    try {
+      const configUrl = (typeof window !== "undefined" && window.location && window.location.origin && window.location.origin.startsWith("http"))
+        ? `${window.location.origin}/api/config`
+        : "http://174.138.72.199:3000/api/config";
+      const srvResp = await fetch(configUrl).catch(() => null);
+      if (srvResp && srvResp.ok) {
+        const srvConfig = await srvResp.json().catch(() => ({}));
+        if (srvConfig.airtableToken) {
+          token = srvConfig.airtableToken;
+          baseId = srvConfig.airtableBaseId || baseId;
+          tableId = srvConfig.airtableTableId || tableId;
+          DEFAULT_CONFIG.token = token;
+          if (document.getElementById("airtableToken")) document.getElementById("airtableToken").value = token;
+          if (document.getElementById("airtableBaseId")) document.getElementById("airtableBaseId").value = baseId;
+          if (document.getElementById("airtableTableId")) document.getElementById("airtableTableId").value = tableId;
+          await appStorage.set({ airtableToken: token, airtableBaseId: baseId, airtableTableId: tableId });
+        }
+      }
+    } catch (e) {}
+  }
 
   if (!token || !baseId || !tableId) {
     showToast("Configure Airtable credentials in Settings first.");
